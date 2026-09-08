@@ -14,7 +14,7 @@ fn main() {
     let path = std::path::Path::new("output/book1/image2.png");
     let prefix = path.parent().unwrap();
     std::fs::create_dir_all(prefix).expect("Cannot create all the parents");
-    
+
     // image
     let aspect_ratio = 16.0 / 9.0;
     let width = 400;
@@ -25,7 +25,7 @@ fn main() {
     let viewport_height = 2.0;
     let viewport_width = viewport_height * (width as f64 / height as f64);
     let camera_center = vec::Point(0.0, 0.0, 0.0);
-    
+
     // viewport
     let viewport_u = vec::Point(viewport_width, 0.0, 0.0);
     let viewport_v = vec::Point(0.0, -viewport_height, 0.0);
@@ -35,9 +35,9 @@ fn main() {
     let pixel_delta_v = viewport_v / height as f64;
 
     // upper left pixel location
-    let viewport_upper_left = camera_center - vec::Point(0.0, 0.0, focal_length) - viewport_u / 2.0 - viewport_v / 2.0;
+    let viewport_upper_left =
+        camera_center - vec::Point(0.0, 0.0, focal_length) - viewport_u / 2.0 - viewport_v / 2.0;
     let pixel00_loc = viewport_upper_left + (pixel_delta_u + pixel_delta_v) / 2.0;
-
 
     // different from the book, we use image crate to create a .png image rather than outputting .ppm file, which is not widely used.
     // anyway, you may output any image format you like.
