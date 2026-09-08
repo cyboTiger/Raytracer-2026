@@ -57,10 +57,7 @@ pub struct Ray {
 
 impl Ray {
     pub fn new(orig: Point, dir: Point) -> Self {
-        Ray {
-            orig,
-            dir,
-        }
+        Ray { orig, dir }
     }
 
     #[allow(dead_code)]
