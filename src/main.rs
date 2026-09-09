@@ -18,8 +18,8 @@ fn hit_sphere(center: &vec::Point, radius: f64, r: &vec::Ray) -> bool {
 }
 
 fn ray_color(r: &vec::Ray) -> vec::Point {
-    if hit_sphere(&vec::Point(0.0, 0.0, 1.0), 0.5, &r) {
-        return vec::Point(1.0, 0.0, 0.0)
+    if hit_sphere(&vec::Point(0.0, 0.0, 1.0), 0.5, r) {
+        return vec::Point(1.0, 0.0, 0.0);
     }
     let unit_dir = r.dir.unit_vector();
     let a = (unit_dir.1 + 1.0) * 0.5;
