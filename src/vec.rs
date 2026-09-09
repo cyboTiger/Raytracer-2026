@@ -4,8 +4,16 @@ use std::ops::{Add, Div, Mul, Neg, Sub};
 pub struct Point(pub f64, pub f64, pub f64);
 
 impl Point {
-    pub fn l2norm(&self) -> f64 {
-        (self.0.powi(2) + self.1.powi(2) + self.2.powi(2)).sqrt()
+    pub fn norm_squared(&self) -> f64 {
+        self.0.powi(2) + self.1.powi(2) + self.2.powi(2)
+    }
+
+    pub fn norm(&self) -> f64 {
+        self.norm_squared().sqrt()
+    }
+
+    pub fn unit_vector(&self) -> Point {
+        *self / self.norm()
     }
 }
 
@@ -46,6 +54,14 @@ impl Div<f64> for Point {
 
     fn div(self, rhs: f64) -> Self::Output {
         Point(self.0 / rhs, self.1 / rhs, self.2 / rhs)
+    }
+}
+
+impl Mul<Point> for Point {
+    type Output = f64;
+
+    fn mul(self, rhs: Point) -> f64 {
+        self.0 * rhs.0 + self.1 * rhs.1 + self.2 * rhs.2
     }
 }
 

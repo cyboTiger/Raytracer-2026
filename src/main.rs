@@ -4,14 +4,30 @@ use indicatif::ProgressBar;
 
 mod vec;
 
+fn hit_sphere(center: &vec::Point, radius: f64, r: &vec::Ray) -> bool {
+    let a = r.dir.norm_squared();
+    let b = r.dir * (*center - r.orig) * (-2.0);
+    let c = (*center - r.orig).norm_squared() - radius * radius;
+    let discriminant = b * b - 4.0 * a * c;
+    // if discriminant < 0.0 {
+    //     return -1.0
+    // } else {
+    //     return (-b - discriminant.sqrt()) / (2.0 * a)
+    // }
+    discriminant >= 0.0
+}
+
 fn ray_color(r: &vec::Ray) -> vec::Point {
-    let unit_dir = r.dir / r.dir.l2norm();
+    if hit_sphere(&vec::Point(0.0, 0.0, 1.0), 0.5, &r) {
+        return vec::Point(1.0, 0.0, 0.0)
+    }
+    let unit_dir = r.dir.unit_vector();
     let a = (unit_dir.1 + 1.0) * 0.5;
     vec::Point(1.0, 1.0, 1.0) * (1.0 - a) + vec::Point(0.5, 0.7, 1.0) * a
 }
 
 fn main() {
-    let path = std::path::Path::new("output/book1/image2.png");
+    let path = std::path::Path::new("output/book1/image3.png");
     let prefix = path.parent().unwrap();
     std::fs::create_dir_all(prefix).expect("Cannot create all the parents");
 
