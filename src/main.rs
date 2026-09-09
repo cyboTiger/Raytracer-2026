@@ -4,22 +4,23 @@ use indicatif::ProgressBar;
 
 mod vec;
 
-fn hit_sphere(center: &vec::Point, radius: f64, r: &vec::Ray) -> bool {
+fn hit_sphere(center: &vec::Point, radius: f64, r: &vec::Ray) -> f64 {
     let a = r.dir.norm_squared();
     let b = r.dir * (*center - r.orig) * (-2.0);
     let c = (*center - r.orig).norm_squared() - radius * radius;
     let discriminant = b * b - 4.0 * a * c;
-    // if discriminant < 0.0 {
-    //     return -1.0
-    // } else {
-    //     return (-b - discriminant.sqrt()) / (2.0 * a)
-    // }
-    discriminant >= 0.0
+    if discriminant < 0.0 {
+        -1.0
+    } else {
+        (-b - discriminant.sqrt()) / (2.0 * a)
+    }
 }
 
 fn ray_color(r: &vec::Ray) -> vec::Point {
-    if hit_sphere(&vec::Point(0.0, 0.0, 1.0), 0.5, r) {
-        return vec::Point(1.0, 0.0, 0.0);
+    let t = hit_sphere(&vec::Point(0.0, 0.0, -1.0), 0.5, r);
+    if t > 0.0 {
+        let n = (r.at(t) - vec::Point(0.0, 0.0, -1.0)).unit_vector();
+        return vec::Point(n.0 + 1.0, n.1 + 1.0, n.2 + 1.0) * 0.5;
     }
     let unit_dir = r.dir.unit_vector();
     let a = (unit_dir.1 + 1.0) * 0.5;
@@ -27,7 +28,7 @@ fn ray_color(r: &vec::Ray) -> vec::Point {
 }
 
 fn main() {
-    let path = std::path::Path::new("output/book1/image3.png");
+    let path = std::path::Path::new("output/book1/image4.png");
     let prefix = path.parent().unwrap();
     std::fs::create_dir_all(prefix).expect("Cannot create all the parents");
 
