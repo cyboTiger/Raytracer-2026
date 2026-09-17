@@ -4,8 +4,8 @@ use indicatif::ProgressBar;
 
 use crate::rtweekend::ray::Point;
 
-pub mod rtweekend;
 pub mod hittable;
+pub mod rtweekend;
 
 // fn hit_sphere(center: &rtweekend::ray::Point, radius: f64, r: &rtweekend::ray::Ray) -> f64 {
 //     let a = r.dir.norm_squared();
@@ -22,7 +22,7 @@ pub mod hittable;
 fn ray_color(r: &rtweekend::ray::Ray, world: &dyn hittable::Hittable) -> rtweekend::ray::Point {
     let mut tmp_rec = hittable::HitRecord::new();
     if world.hit(r, 0.0, rtweekend::INFINITY, &mut tmp_rec) {
-        return (tmp_rec.normal + Point(1.0, 1.0, 1.0)) / 2.0
+        return (tmp_rec.normal + Point(1.0, 1.0, 1.0)) / 2.0;
     }
     let unit_dir = r.dir.unit_vector();
     let a = (unit_dir.1 + 1.0) * 0.5;
@@ -54,8 +54,10 @@ fn main() {
     let pixel_delta_v = viewport_v / height as f64;
 
     // upper left pixel location
-    let viewport_upper_left =
-        camera_center - rtweekend::ray::Point(0.0, 0.0, focal_length) - viewport_u / 2.0 - viewport_v / 2.0;
+    let viewport_upper_left = camera_center
+        - rtweekend::ray::Point(0.0, 0.0, focal_length)
+        - viewport_u / 2.0
+        - viewport_v / 2.0;
     let pixel00_loc = viewport_upper_left + (pixel_delta_u + pixel_delta_v) / 2.0;
 
     // different from the book, we use image crate to create a .png image rather than outputting .ppm file, which is not widely used.
@@ -70,7 +72,10 @@ fn main() {
 
     let mut world = hittable::HittableList::new();
     world.add(Box::new(hittable::Sphere::new(Point(0.0, 0.0, -1.0), 0.5)));
-    world.add(Box::new(hittable::Sphere::new(Point(0.0, -100.5, -1.0), 100.0)));
+    world.add(Box::new(hittable::Sphere::new(
+        Point(0.0, -100.5, -1.0),
+        100.0,
+    )));
     for j in (0..height).rev() {
         for i in 0..width {
             let pixel = img.get_pixel_mut(i, j);

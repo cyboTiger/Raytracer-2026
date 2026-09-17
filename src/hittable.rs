@@ -1,5 +1,5 @@
 use crate::rtweekend::ray;
-use std::{vec};
+use std::vec;
 
 pub struct HitRecord {
     pub p: ray::Point,
@@ -14,7 +14,7 @@ impl HitRecord {
             p: ray::Point(0.0, 0.0, 0.0),
             normal: ray::Point(0.0, 0.0, 0.0),
             t: 0.0,
-            front_face: true
+            front_face: true,
         }
     }
     pub fn set(&mut self, p: ray::Point, normal: ray::Point, t: f64) {
@@ -33,18 +33,27 @@ impl HitRecord {
     }
 }
 
+impl Default for HitRecord {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 pub trait Hittable {
     fn hit(&self, r: &ray::Ray, ray_tmin: f64, ray_tmax: f64, rec: &mut HitRecord) -> bool;
 }
 
 pub struct Sphere {
     center: ray::Point,
-    radius: f64
+    radius: f64,
 }
 
 impl Sphere {
     pub fn new(center: ray::Point, radius: f64) -> Self {
-        Sphere { center, radius: radius.max(0.0)}
+        Sphere {
+            center,
+            radius: radius.max(0.0),
+        }
     }
 }
 
@@ -57,17 +66,17 @@ impl Hittable for Sphere {
 
         let discriminant = h * h - a * c;
         if discriminant < 0.0 {
-            return false
+            return false;
         }
         let sqrtd = discriminant.sqrt();
         let mut root = (h - sqrtd) / a;
         if root < ray_tmin || root > ray_tmax {
             root = (h + sqrtd) / a;
             if root < ray_tmin || root > ray_tmax {
-                return false
+                return false;
             }
         }
-        
+
         let outward_normal = (r.at(root) - self.center) / self.radius;
         rec.set(r.at(root), (r.at(root) - self.center) / self.radius, root);
         rec.set_face_normal(r, &outward_normal);
@@ -82,24 +91,27 @@ pub struct HittableList {
 
 impl HittableList {
     pub fn new() -> Self {
-        HittableList { objects: Vec::new() }
+        HittableList {
+            objects: Vec::new(),
+        }
     }
 
     pub fn new_with_item(object: Box<dyn Hittable>) -> Self {
-        HittableList { objects: vec![object] }
+        HittableList {
+            objects: vec![object],
+        }
     }
 
     pub fn add(&mut self, object: Box<dyn Hittable>) {
         self.objects.push(object);
     }
-    
+
     pub fn clear(&mut self) {
         self.objects.clear();
     }
 }
 
 impl Hittable for HittableList {
-    
     fn hit(&self, r: &ray::Ray, ray_tmin: f64, ray_tmax: f64, rec: &mut HitRecord) -> bool {
         let mut hit_anything = false;
         let mut closest_so_far = ray_tmax;
@@ -112,5 +124,11 @@ impl Hittable for HittableList {
             }
         }
         hit_anything
+    }
+}
+
+impl Default for HittableList {
+    fn default() -> Self {
+        Self::new()
     }
 }
