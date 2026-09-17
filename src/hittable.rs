@@ -1,3 +1,4 @@
+use crate::rtweekend::interval;
 use crate::rtweekend::ray;
 use std::vec;
 
@@ -40,7 +41,7 @@ impl Default for HitRecord {
 }
 
 pub trait Hittable {
-    fn hit(&self, r: &ray::Ray, ray_tmin: f64, ray_tmax: f64, rec: &mut HitRecord) -> bool;
+    fn hit(&self, r: &ray::Ray, interval: &interval::Interval, rec: &mut HitRecord) -> bool;
 }
 
 pub struct Sphere {
@@ -58,7 +59,7 @@ impl Sphere {
 }
 
 impl Hittable for Sphere {
-    fn hit(&self, r: &ray::Ray, ray_tmin: f64, ray_tmax: f64, rec: &mut HitRecord) -> bool {
+    fn hit(&self, r: &ray::Ray, interval: &interval::Interval, rec: &mut HitRecord) -> bool {
         let oc = self.center - r.orig;
         let a = r.dir.norm_squared();
         let h = r.dir * oc;
@@ -70,9 +71,9 @@ impl Hittable for Sphere {
         }
         let sqrtd = discriminant.sqrt();
         let mut root = (h - sqrtd) / a;
-        if root < ray_tmin || root > ray_tmax {
+        if !interval.surrounds(root) {
             root = (h + sqrtd) / a;
-            if root < ray_tmin || root > ray_tmax {
+            if !interval.surrounds(root) {
                 return false;
             }
         }
@@ -112,13 +113,17 @@ impl HittableList {
 }
 
 impl Hittable for HittableList {
-    fn hit(&self, r: &ray::Ray, ray_tmin: f64, ray_tmax: f64, rec: &mut HitRecord) -> bool {
+    fn hit(&self, r: &ray::Ray, interval: &interval::Interval, rec: &mut HitRecord) -> bool {
         let mut hit_anything = false;
-        let mut closest_so_far = ray_tmax;
+        let mut closest_so_far = interval.max;
         let tmp_rec = rec;
 
         for obj in &self.objects {
-            if obj.hit(r, ray_tmin, closest_so_far, tmp_rec) {
+            if obj.hit(
+                r,
+                &interval::Interval::new(interval.min, closest_so_far),
+                tmp_rec,
+            ) {
                 hit_anything = true;
                 closest_so_far = tmp_rec.t;
             }
