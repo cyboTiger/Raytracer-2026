@@ -54,10 +54,12 @@ impl Camera {
             // std::io::stderr().flush().unwrap();
             for i in 0..self.image_width {
                 let mut pixel_color = Point(0.0, 0.0, 0.0);
+                let reflectance = ((i * 5) as f64 / self.image_width as f64).trunc() * 0.2 + 0.1;
 
                 for _ in 0..self.samples_per_pixel {
                     let r = self.get_ray(i, j);
-                    pixel_color = pixel_color + self.ray_color(&r, self.max_depth, world)
+                    pixel_color =
+                        pixel_color + self.ray_color(&r, self.max_depth, world, Some(reflectance));
                 }
 
                 self.write_color(i, j, pixel_color * self.pixel_samples_scale);
@@ -101,7 +103,13 @@ impl Camera {
         self.pixel_samples_scale = 1.0 / self.samples_per_pixel as f64
     }
 
-    fn ray_color(&self, r: &Ray, depth: i32, world: &dyn hittable::Hittable) -> Point {
+    fn ray_color(
+        &self,
+        r: &Ray,
+        depth: i32,
+        world: &dyn hittable::Hittable,
+        reflectance: Option<f64>,
+    ) -> Point {
         if depth <= 0 {
             return Point(0.0, 0.0, 0.0);
         }
@@ -116,7 +124,13 @@ impl Camera {
         ) {
             // let direction = random_on_hemisphere(&tmp_rec.normal);
             let direction = tmp_rec.normal + random_unit_point();
-            return self.ray_color(&Ray::new(tmp_rec.p, direction), depth - 1, world) * 0.5;
+
+            return self.ray_color(
+                &Ray::new(tmp_rec.p, direction),
+                depth - 1,
+                world,
+                reflectance,
+            ) * reflectance.unwrap();
             // return (tmp_rec.normal + Point(1.0, 1.0, 1.0)) / 2.0;
         }
         let unit_dir = r.dir.unit_vector();
