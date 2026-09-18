@@ -7,7 +7,6 @@ use crate::rtweekend::interval;
 use crate::rtweekend::random_double;
 use crate::rtweekend::ray::Point;
 use crate::rtweekend::ray::Ray;
-use crate::rtweekend::ray::random_on_hemisphere;
 use crate::rtweekend::ray::random_unit_point;
 pub struct Camera {
     pub aspect_ratio: f64,
