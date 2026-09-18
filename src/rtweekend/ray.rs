@@ -1,3 +1,4 @@
+use crate::rtweekend;
 use std::ops::{Add, Div, Mul, Neg, Sub};
 
 #[derive(Debug, Clone, Copy)] // 添加 Copy
@@ -83,5 +84,40 @@ impl Ray {
             self.orig.1 + self.dir.1 * t,
             self.orig.2 + self.dir.2 * t,
         )
+    }
+}
+
+pub fn random_point() -> Point {
+    Point(
+        rtweekend::random_double(),
+        rtweekend::random_double(),
+        rtweekend::random_double(),
+    )
+}
+
+pub fn random_point_minmax(min: f64, max: f64) -> Point {
+    Point(
+        rtweekend::random_double_minmax(min, max),
+        rtweekend::random_double_minmax(min, max),
+        rtweekend::random_double_minmax(min, max),
+    )
+}
+
+pub fn random_unit_point() -> Point {
+    loop {
+        let p = random_point_minmax(-1.0, 1.0);
+        let lensq = p.norm_squared();
+        if lensq <= 1.0 && lensq > 1e-160 {
+            return p / lensq.sqrt();
+        }
+    }
+}
+
+pub fn random_on_hemisphere(normal: &Point) -> Point {
+    let on_unit_sphere = random_unit_point();
+    if on_unit_sphere * *normal > 0.0 {
+        on_unit_sphere
+    } else {
+        -on_unit_sphere
     }
 }

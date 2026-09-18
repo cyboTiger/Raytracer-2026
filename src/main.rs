@@ -6,7 +6,7 @@ pub mod hittable;
 pub mod rtweekend;
 
 fn main() {
-    let path = std::path::Path::new("output/book1/image6.png");
+    let path = std::path::Path::new("output/book1/image7.png");
     let prefix = path.parent().unwrap();
     std::fs::create_dir_all(prefix).expect("Cannot create all the parents");
 

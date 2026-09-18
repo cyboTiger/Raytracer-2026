@@ -7,6 +7,7 @@ use crate::rtweekend::interval;
 use crate::rtweekend::random_double;
 use crate::rtweekend::ray::Point;
 use crate::rtweekend::ray::Ray;
+use crate::rtweekend::ray::random_on_hemisphere;
 pub struct Camera {
     pub aspect_ratio: f64,
     pub image_width: u32,
@@ -108,7 +109,9 @@ impl Camera {
             },
             &mut tmp_rec,
         ) {
-            return (tmp_rec.normal + Point(1.0, 1.0, 1.0)) / 2.0;
+            let direction = random_on_hemisphere(&tmp_rec.normal);
+            return self.ray_color(&Ray::new(tmp_rec.p, direction), world) * 0.5;
+            // return (tmp_rec.normal + Point(1.0, 1.0, 1.0)) / 2.0;
         }
         let unit_dir = r.dir.unit_vector();
         let a = (unit_dir.1 + 1.0) * 0.5;
