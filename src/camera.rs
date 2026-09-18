@@ -8,6 +8,7 @@ use crate::rtweekend::random_double;
 use crate::rtweekend::ray::Point;
 use crate::rtweekend::ray::Ray;
 use crate::rtweekend::ray::random_on_hemisphere;
+use crate::rtweekend::ray::random_unit_point;
 pub struct Camera {
     pub aspect_ratio: f64,
     pub image_width: u32,
@@ -114,7 +115,8 @@ impl Camera {
             },
             &mut tmp_rec,
         ) {
-            let direction = random_on_hemisphere(&tmp_rec.normal);
+            // let direction = random_on_hemisphere(&tmp_rec.normal);
+            let direction = tmp_rec.normal + random_unit_point();
             return self.ray_color(&Ray::new(tmp_rec.p, direction), depth - 1, world) * 0.5;
             // return (tmp_rec.normal + Point(1.0, 1.0, 1.0)) / 2.0;
         }
