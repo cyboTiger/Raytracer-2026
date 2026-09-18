@@ -109,7 +109,7 @@ impl Camera {
         if world.hit(
             r,
             &rtweekend::interval::Interval {
-                min: 0.0,
+                min: 0.001,
                 max: rtweekend::INFINITY,
             },
             &mut tmp_rec,
