@@ -4,10 +4,12 @@ use indicatif::ProgressBar;
 use crate::hittable;
 use crate::rtweekend;
 use crate::rtweekend::interval;
+use crate::rtweekend::linear_to_gamma;
 use crate::rtweekend::random_double;
 use crate::rtweekend::ray::Point;
 use crate::rtweekend::ray::Ray;
 use crate::rtweekend::ray::random_unit_point;
+
 pub struct Camera {
     pub aspect_ratio: f64,
     pub image_width: u32,
@@ -151,9 +153,9 @@ impl Camera {
             max: 0.999,
         };
 
-        let r: f64 = INTENSITY.clamp(color.0) * 255.999;
-        let g: f64 = INTENSITY.clamp(color.1) * 255.999;
-        let b: f64 = INTENSITY.clamp(color.2) * 255.999;
+        let r: f64 = INTENSITY.clamp(linear_to_gamma(color.0)) * 255.999;
+        let g: f64 = INTENSITY.clamp(linear_to_gamma(color.1)) * 255.999;
+        let b: f64 = INTENSITY.clamp(linear_to_gamma(color.2)) * 255.999;
         *pixel = image::Rgb([r as u8, g as u8, b as u8]);
     }
 

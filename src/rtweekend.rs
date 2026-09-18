@@ -18,3 +18,11 @@ pub fn random_double() -> f64 {
 pub fn random_double_minmax(min: f64, max: f64) -> f64 {
     min + (max - min) * random_double()
 }
+
+pub fn linear_to_gamma(linear_component: f64) -> f64 {
+    if linear_component > 0.0 {
+        linear_component.sqrt()
+    } else {
+        0.0
+    }
+}
