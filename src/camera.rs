@@ -11,8 +11,9 @@ use crate::rtweekend::ray::random_on_hemisphere;
 pub struct Camera {
     pub aspect_ratio: f64,
     pub image_width: u32,
-    pub samples_per_pixel: u32,
+    pub samples_per_pixel: u32, // Count of random samples for each pixel
     pub img: Option<RgbImage>,
+    pub max_depth: i32, // Maximum number of ray bounces into scene
 
     image_height: u32,
     center: Point,
@@ -34,6 +35,7 @@ impl Camera {
             pixel_delta_v: Point(0.0, 0.0, 0.0),
             samples_per_pixel: 10,
             pixel_samples_scale: 0.1,
+            max_depth: 10,
             img: None,
         }
     }
@@ -55,7 +57,7 @@ impl Camera {
 
                 for _ in 0..self.samples_per_pixel {
                     let r = self.get_ray(i, j);
-                    pixel_color = pixel_color + self.ray_color(&r, world)
+                    pixel_color = pixel_color + self.ray_color(&r, self.max_depth, world)
                 }
 
                 self.write_color(i, j, pixel_color * self.pixel_samples_scale);
@@ -99,7 +101,10 @@ impl Camera {
         self.pixel_samples_scale = 1.0 / self.samples_per_pixel as f64
     }
 
-    fn ray_color(&self, r: &Ray, world: &dyn hittable::Hittable) -> Point {
+    fn ray_color(&self, r: &Ray, depth: i32, world: &dyn hittable::Hittable) -> Point {
+        if depth <= 0 {
+            return Point(0.0, 0.0, 0.0);
+        }
         let mut tmp_rec = hittable::HitRecord::new();
         if world.hit(
             r,
@@ -110,7 +115,7 @@ impl Camera {
             &mut tmp_rec,
         ) {
             let direction = random_on_hemisphere(&tmp_rec.normal);
-            return self.ray_color(&Ray::new(tmp_rec.p, direction), world) * 0.5;
+            return self.ray_color(&Ray::new(tmp_rec.p, direction), depth - 1, world) * 0.5;
             // return (tmp_rec.normal + Point(1.0, 1.0, 1.0)) / 2.0;
         }
         let unit_dir = r.dir.unit_vector();

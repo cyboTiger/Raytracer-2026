@@ -6,7 +6,7 @@ pub mod hittable;
 pub mod rtweekend;
 
 fn main() {
-    let path = std::path::Path::new("output/book1/image7.png");
+    let path = std::path::Path::new("output/book1/image8.png");
     let prefix = path.parent().unwrap();
     std::fs::create_dir_all(prefix).expect("Cannot create all the parents");
 
@@ -21,6 +21,7 @@ fn main() {
     cam.aspect_ratio = 16.0 / 9.0;
     cam.image_width = 400;
     cam.samples_per_pixel = 100;
+    cam.max_depth = 50;
     cam.render(&world);
 
     println!(
