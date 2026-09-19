@@ -3,6 +3,7 @@ use indicatif::ProgressBar;
 
 use crate::hittable;
 use crate::rtweekend;
+use crate::rtweekend::degrees_to_radians;
 use crate::rtweekend::interval;
 use crate::rtweekend::linear_to_gamma;
 use crate::rtweekend::random_double;
@@ -16,6 +17,7 @@ pub struct Camera {
     pub samples_per_pixel: u32, // Count of random samples for each pixel
     pub img: Option<RgbImage>,
     pub max_depth: i32, // Maximum number of ray bounces into scene
+    pub vfov: f64,      // Vertical view angle (field of view)
 
     image_height: u32,
     center: Point,
@@ -39,6 +41,7 @@ impl Camera {
             pixel_samples_scale: 0.1,
             max_depth: 10,
             img: None,
+            vfov: 90.0,
         }
     }
 
@@ -83,7 +86,9 @@ impl Camera {
 
         // Determine viewport dimensions.
         let focal_length = 1.0;
-        let viewport_height = 2.0;
+        let theta = degrees_to_radians(self.vfov);
+        let h = (theta / 2.0).tan();
+        let viewport_height = 2.0 * h * focal_length;
         let viewport_width = viewport_height * (self.image_width as f64 / self.image_height as f64);
 
         // Calculate the vectors across the horizontal and down the vertical viewport edges.
