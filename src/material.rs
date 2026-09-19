@@ -1,6 +1,6 @@
 use crate::{
     hittable::HitRecord,
-    rtweekend::ray::{Point, Ray, random_unit_point, reflect, dot},
+    rtweekend::ray::{Point, Ray, dot, random_unit_point, reflect},
 };
 
 pub trait Material {
@@ -43,12 +43,15 @@ impl Material for Lambertian {
 
 pub struct Metal {
     albedo: Point,
-    fuzz: f64
+    fuzz: f64,
 }
 
 impl Metal {
     pub fn new(albedo: Point, fuzz: f64) -> Self {
-        Metal { albedo, fuzz: if fuzz < 1.0 { fuzz } else { 1.0 }}
+        Metal {
+            albedo,
+            fuzz: if fuzz < 1.0 { fuzz } else { 1.0 },
+        }
     }
 }
 
@@ -64,7 +67,7 @@ impl Material for Metal {
         reflected = reflected.unit_vector() + random_unit_point() * self.fuzz;
         *scattered = Ray::new(rec.p, reflected);
         *attenuation = self.albedo;
-        
+
         dot(scattered.dir, rec.normal) > 0.0
     }
 }
