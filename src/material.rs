@@ -1,6 +1,9 @@
 use crate::{
     hittable::HitRecord,
-    rtweekend::ray::{Point, Ray, dot, random_unit_point, reflect, refract},
+    rtweekend::{
+        random_double,
+        ray::{Point, Ray, dot, random_unit_point, reflect, refract},
+    },
 };
 
 pub trait Material {
@@ -80,6 +83,12 @@ impl Dielectric {
     pub fn new(refraction_index: f64) -> Self {
         Dielectric { refraction_index }
     }
+
+    fn reflectance(&self, cosine: f64, refraction_index: f64) -> f64 {
+        let r0 = (1.0 - refraction_index) / (1.0 + refraction_index);
+
+        r0 * r0 + (1.0 - r0 * r0) * (1.0 - cosine).powi(5)
+    }
 }
 
 impl Material for Dielectric {
@@ -106,7 +115,9 @@ impl Material for Dielectric {
         let sin_theta = (1.0 - cos_theta * cos_theta).sqrt();
 
         let cannot_reflect = ri * sin_theta > 1.0;
-        let direction = if cannot_reflect {
+        let direction = if cannot_reflect
+            || self.reflectance(cos_theta, self.refraction_index) > random_double()
+        {
             reflect(&unit_dir, &rec.normal)
         } else {
             refract(&unit_dir, &rec.normal, ri)
