@@ -1,5 +1,5 @@
-use crate::rtweekend;
 use crate::rtweekend::ray;
+use crate::rtweekend::{self, random_double_minmax};
 use std::ops::{Add, Div, Mul, Neg, Sub};
 
 #[derive(Debug, Clone, Copy)] // 添加 Copy
@@ -153,6 +153,19 @@ pub fn random_on_hemisphere(normal: &Point) -> Point {
         on_unit_sphere
     } else {
         -on_unit_sphere
+    }
+}
+
+pub fn random_in_unit_disk() -> Point {
+    loop {
+        let p = Point(
+            random_double_minmax(-1.0, 1.0),
+            random_double_minmax(-1.0, 1.0),
+            0.0,
+        );
+        if p.norm_squared() < 1.0 {
+            return p;
+        }
     }
 }
 

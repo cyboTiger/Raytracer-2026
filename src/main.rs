@@ -12,7 +12,7 @@ pub mod material;
 pub mod rtweekend;
 
 fn main() {
-    let path = std::path::Path::new("output/book1/image20.png");
+    let path = std::path::Path::new("output/book1/image22.png");
     let prefix = path.parent().unwrap();
     std::fs::create_dir_all(prefix).expect("Cannot create all the parents");
 
@@ -60,6 +60,9 @@ fn main() {
     cam.lookfrom = Point(-2.0, 2.0, 1.0);
     cam.lookat = Point(0.0, 0.0, -1.0);
     cam.vup = Point(0.0, 1.0, 0.0);
+
+    cam.defocus_angle = 10.0;
+    cam.focus_dist = 3.4;
     cam.render(&world);
 
     println!(

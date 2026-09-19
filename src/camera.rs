@@ -11,6 +11,7 @@ use crate::rtweekend::ray;
 use crate::rtweekend::ray::Point;
 use crate::rtweekend::ray::Ray;
 use crate::rtweekend::ray::cross;
+use crate::rtweekend::ray::random_in_unit_disk;
 
 pub struct Camera {
     pub aspect_ratio: f64,
@@ -24,6 +25,9 @@ pub struct Camera {
     pub lookat: Point,   // Point camera is looking at
     pub vup: Point,      // Camera-relative "up" direction
 
+    pub defocus_angle: f64,
+    pub focus_dist: f64,
+
     image_height: u32,
     center: Point,
     pixel00_loc: Point,
@@ -34,6 +38,9 @@ pub struct Camera {
     u: Point,
     v: Point,
     w: Point,
+
+    defocus_disk_u: Point,
+    defocus_disk_v: Point,
 }
 
 impl Camera {
@@ -57,6 +64,10 @@ impl Camera {
             u: Point::new(),
             v: Point::new(),
             w: Point::new(),
+            defocus_angle: 0.0,
+            focus_dist: 10.0,
+            defocus_disk_u: Point::new(),
+            defocus_disk_v: Point::new(),
         }
     }
 
@@ -100,10 +111,10 @@ impl Camera {
         self.center = self.lookfrom;
 
         // Determine viewport dimensions.
-        let focal_length = (self.lookfrom - self.lookat).norm();
+        // let focal_length = (self.lookfrom - self.lookat).norm();
         let theta = degrees_to_radians(self.vfov);
         let h = (theta / 2.0).tan();
-        let viewport_height = 2.0 * h * focal_length;
+        let viewport_height = 2.0 * h * self.focus_dist;
         let viewport_width = viewport_height * (self.image_width as f64 / self.image_height as f64);
 
         // Calculate the u,v,w unit basis vectors for the camera coordinate frame.
@@ -121,8 +132,13 @@ impl Camera {
 
         // Calculate the location of the upper left pixel.
         let viewport_upper_left =
-            self.center - (self.w * focal_length) - viewport_u / 2.0 - viewport_v / 2.0;
+            self.center - (self.w * self.focus_dist) - viewport_u / 2.0 - viewport_v / 2.0;
         self.pixel00_loc = viewport_upper_left + (self.pixel_delta_u + self.pixel_delta_v) * 0.5;
+
+        // Calculate the camera defocus disk basis vectors.
+        let defocus_radius = self.focus_dist * (degrees_to_radians(self.defocus_angle / 2.0)).tan();
+        self.defocus_disk_u = self.u * defocus_radius;
+        self.defocus_disk_v = self.v * defocus_radius;
 
         // pixel sample scale
         self.pixel_samples_scale = 1.0 / self.samples_per_pixel as f64
@@ -184,11 +200,22 @@ impl Camera {
         let pixel_center = self.pixel00_loc
             + self.pixel_delta_u * (i as f64 + offset.0)
             + self.pixel_delta_v * (j as f64 + offset.1);
-        Ray::new(self.center, pixel_center - self.center)
+        let ray_origin = if self.defocus_angle <= 0.0 {
+            self.center
+        } else {
+            self.defocus_disk_sample()
+        };
+        Ray::new(ray_origin, pixel_center - ray_origin)
     }
 
     fn sample_square(&self) -> Point {
         Point(random_double() - 0.5, random_double() - 0.5, 0.0)
+    }
+
+    fn defocus_disk_sample(&self) -> Point {
+        // Returns a random point in the camera defocus disk.
+        let p = random_in_unit_disk();
+        self.center + self.defocus_disk_u * p.0 + self.defocus_disk_v * p.1
     }
 
     pub fn save_img(&self, path: &std::path::Path) {
