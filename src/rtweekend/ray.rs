@@ -1,10 +1,15 @@
 use crate::rtweekend;
+use crate::rtweekend::ray;
 use std::ops::{Add, Div, Mul, Neg, Sub};
 
 #[derive(Debug, Clone, Copy)] // 添加 Copy
 pub struct Point(pub f64, pub f64, pub f64);
 
 impl Point {
+    pub fn new() -> Self {
+        Point(0.0, 0.0, 0.0)
+    }
+
     pub fn norm_squared(&self) -> f64 {
         self.0.powi(2) + self.1.powi(2) + self.2.powi(2)
     }
@@ -15,6 +20,17 @@ impl Point {
 
     pub fn unit_vector(&self) -> Point {
         *self / self.norm()
+    }
+
+    pub fn near_zero(&self) -> bool {
+        let s = 1e-8;
+        self.0 < s && self.1 < s && self.2 < s
+    }
+}
+
+impl Default for Point {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
@@ -59,11 +75,15 @@ impl Div<f64> for Point {
 }
 
 impl Mul<Point> for Point {
-    type Output = f64;
+    type Output = Point;
 
-    fn mul(self, rhs: Point) -> f64 {
-        self.0 * rhs.0 + self.1 * rhs.1 + self.2 * rhs.2
+    fn mul(self, rhs: Point) -> Point {
+        Point(self.0 * rhs.0, self.1 * rhs.1, self.2 * rhs.2)
     }
+}
+
+pub fn dot(a: Point, b: Point) -> f64 {
+    a.0 * b.0 + a.1 * b.1 + a.2 * b.2
 }
 
 pub struct Ray {
@@ -84,6 +104,12 @@ impl Ray {
             self.orig.1 + self.dir.1 * t,
             self.orig.2 + self.dir.2 * t,
         )
+    }
+}
+
+impl Default for Ray {
+    fn default() -> Self {
+        Ray::new(Point::new(), Point::new())
     }
 }
 
@@ -115,9 +141,13 @@ pub fn random_unit_point() -> Point {
 
 pub fn random_on_hemisphere(normal: &Point) -> Point {
     let on_unit_sphere = random_unit_point();
-    if on_unit_sphere * *normal > 0.0 {
+    if ray::dot(on_unit_sphere, *normal) > 0.0 {
         on_unit_sphere
     } else {
         -on_unit_sphere
     }
+}
+
+pub fn reflect(v: &Point, n: &Point) -> Point {
+    *v - *n * dot(*v, *n) * 2.0
 }

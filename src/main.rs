@@ -1,20 +1,47 @@
-use crate::rtweekend::ray::Point;
+use std::rc::Rc;
+
+use crate::{
+    material::{Lambertian, Metal},
+    rtweekend::ray::Point,
+};
 use console::style;
 
 pub mod camera;
 pub mod hittable;
+pub mod material;
 pub mod rtweekend;
 
 fn main() {
-    let path = std::path::Path::new("output/book1/image12.png");
+    let path = std::path::Path::new("output/book1/image13.png");
     let prefix = path.parent().unwrap();
     std::fs::create_dir_all(prefix).expect("Cannot create all the parents");
 
     let mut world = hittable::HittableList::new();
-    world.add(Box::new(hittable::Sphere::new(Point(0.0, 0.0, -1.0), 0.5)));
+
+    let material_ground = Lambertian::new(Point(0.8, 0.8, 0.0));
+    let material_center = Lambertian::new(Point(0.1, 0.2, 0.5));
+    let material_left = Metal::new(Point(0.8, 0.8, 0.8));
+    let material_right = Metal::new(Point(0.8, 0.6, 0.2));
+
     world.add(Box::new(hittable::Sphere::new(
         Point(0.0, -100.5, -1.0),
         100.0,
+        Rc::new(material_ground),
+    )));
+    world.add(Box::new(hittable::Sphere::new(
+        Point(0.0, 0.0, -1.2),
+        0.5,
+        Rc::new(material_center),
+    )));
+    world.add(Box::new(hittable::Sphere::new(
+        Point(-1.0, 0.0, -1.0),
+        0.5,
+        Rc::new(material_left),
+    )));
+    world.add(Box::new(hittable::Sphere::new(
+        Point(1.0, 0.0, -1.0),
+        0.5,
+        Rc::new(material_right),
     )));
 
     let mut cam = camera::Camera::new();

@@ -1,5 +1,7 @@
+use crate::material;
 use crate::rtweekend::interval;
 use crate::rtweekend::ray;
+use std::rc::Rc;
 use std::vec;
 
 pub struct HitRecord {
@@ -7,15 +9,17 @@ pub struct HitRecord {
     pub normal: ray::Point,
     pub t: f64,
     pub front_face: bool,
+    pub mat: Option<Rc<dyn material::Material>>,
 }
 
 impl HitRecord {
-    pub fn new() -> Self {
+    pub fn new(mat: Option<Rc<dyn material::Material>>) -> Self {
         HitRecord {
             p: ray::Point(0.0, 0.0, 0.0),
             normal: ray::Point(0.0, 0.0, 0.0),
             t: 0.0,
             front_face: true,
+            mat,
         }
     }
     pub fn set(&mut self, p: ray::Point, normal: ray::Point, t: f64) {
@@ -25,18 +29,12 @@ impl HitRecord {
     }
 
     pub fn set_face_normal(&mut self, r: &ray::Ray, outward_normal: &ray::Point) {
-        self.front_face = r.dir * (*outward_normal) < 0.0;
+        self.front_face = ray::dot(r.dir, *outward_normal) < 0.0;
         self.normal = if self.front_face {
             *outward_normal
         } else {
             -*outward_normal
         }
-    }
-}
-
-impl Default for HitRecord {
-    fn default() -> Self {
-        Self::new()
     }
 }
 
@@ -47,13 +45,15 @@ pub trait Hittable {
 pub struct Sphere {
     center: ray::Point,
     radius: f64,
+    mat: Rc<dyn material::Material>,
 }
 
 impl Sphere {
-    pub fn new(center: ray::Point, radius: f64) -> Self {
+    pub fn new(center: ray::Point, radius: f64, mat: Rc<dyn material::Material>) -> Self {
         Sphere {
             center,
             radius: radius.max(0.0),
+            mat,
         }
     }
 }
@@ -62,7 +62,7 @@ impl Hittable for Sphere {
     fn hit(&self, r: &ray::Ray, interval: &interval::Interval, rec: &mut HitRecord) -> bool {
         let oc = self.center - r.orig;
         let a = r.dir.norm_squared();
-        let h = r.dir * oc;
+        let h = ray::dot(r.dir, oc);
         let c = oc.norm_squared() - self.radius * self.radius;
 
         let discriminant = h * h - a * c;
@@ -81,6 +81,7 @@ impl Hittable for Sphere {
         let outward_normal = (r.at(root) - self.center) / self.radius;
         rec.set(r.at(root), (r.at(root) - self.center) / self.radius, root);
         rec.set_face_normal(r, &outward_normal);
+        rec.mat = Some(self.mat.clone());
 
         true
     }

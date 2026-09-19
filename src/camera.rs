@@ -6,9 +6,9 @@ use crate::rtweekend;
 use crate::rtweekend::interval;
 use crate::rtweekend::linear_to_gamma;
 use crate::rtweekend::random_double;
+use crate::rtweekend::ray;
 use crate::rtweekend::ray::Point;
 use crate::rtweekend::ray::Ray;
-use crate::rtweekend::ray::random_unit_point;
 
 pub struct Camera {
     pub aspect_ratio: f64,
@@ -56,12 +56,10 @@ impl Camera {
             // std::io::stderr().flush().unwrap();
             for i in 0..self.image_width {
                 let mut pixel_color = Point(0.0, 0.0, 0.0);
-                let reflectance = ((i * 5) as f64 / self.image_width as f64).trunc() * 0.2 + 0.1;
 
                 for _ in 0..self.samples_per_pixel {
                     let r = self.get_ray(i, j);
-                    pixel_color =
-                        pixel_color + self.ray_color(&r, self.max_depth, world, Some(reflectance));
+                    pixel_color = pixel_color + self.ray_color(&r, self.max_depth, world);
                 }
 
                 self.write_color(i, j, pixel_color * self.pixel_samples_scale);
@@ -105,17 +103,11 @@ impl Camera {
         self.pixel_samples_scale = 1.0 / self.samples_per_pixel as f64
     }
 
-    fn ray_color(
-        &self,
-        r: &Ray,
-        depth: i32,
-        world: &dyn hittable::Hittable,
-        reflectance: Option<f64>,
-    ) -> Point {
+    fn ray_color(&self, r: &Ray, depth: i32, world: &dyn hittable::Hittable) -> Point {
         if depth <= 0 {
             return Point(0.0, 0.0, 0.0);
         }
-        let mut tmp_rec = hittable::HitRecord::new();
+        let mut tmp_rec = hittable::HitRecord::new(None);
         if world.hit(
             r,
             &rtweekend::interval::Interval {
@@ -124,20 +116,23 @@ impl Camera {
             },
             &mut tmp_rec,
         ) {
-            // let direction = random_on_hemisphere(&tmp_rec.normal);
-            let direction = tmp_rec.normal + random_unit_point();
+            let mut scattered = ray::Ray::default();
+            let mut attenuation = Point::new();
 
-            return self.ray_color(
-                &Ray::new(tmp_rec.p, direction),
-                depth - 1,
-                world,
-                reflectance,
-            ) * reflectance.unwrap();
-            // return (tmp_rec.normal + Point(1.0, 1.0, 1.0)) / 2.0;
+            if tmp_rec
+                .mat
+                .as_ref()
+                .expect("Record should have corresponding material")
+                .scatter(r, &tmp_rec, &mut attenuation, &mut scattered)
+            {
+                return attenuation * self.ray_color(&scattered, depth - 1, world);
+            }
+
+            return Point::new();
         }
         let unit_dir = r.dir.unit_vector();
         let a = (unit_dir.1 + 1.0) * 0.5;
-        rtweekend::ray::Point(1.0, 1.0, 1.0) * (1.0 - a) + rtweekend::ray::Point(0.5, 0.7, 1.0) * a
+        Point(1.0, 1.0, 1.0) * (1.0 - a) + Point(0.5, 0.7, 1.0) * a
     }
 
     fn write_color(&mut self, i: u32, j: u32, color: Point) {
