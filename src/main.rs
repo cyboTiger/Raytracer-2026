@@ -56,7 +56,7 @@ fn main() {
     cam.samples_per_pixel = 100;
     cam.max_depth = 50;
 
-    cam.vfov = 90.0;
+    cam.vfov = 20.0;
     cam.lookfrom = Point(-2.0, 2.0, 1.0);
     cam.lookat = Point(0.0, 0.0, -1.0);
     cam.vup = Point(0.0, 1.0, 0.0);
