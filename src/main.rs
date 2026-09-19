@@ -12,7 +12,7 @@ pub mod material;
 pub mod rtweekend;
 
 fn main() {
-    let path = std::path::Path::new("output/book1/image19.png");
+    let path = std::path::Path::new("output/book1/image20.png");
     let prefix = path.parent().unwrap();
     std::fs::create_dir_all(prefix).expect("Cannot create all the parents");
 
