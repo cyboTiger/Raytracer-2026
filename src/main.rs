@@ -1,7 +1,7 @@
 use std::rc::Rc;
 
 use crate::{
-    material::{Lambertian, Metal},
+    material::{Dielectric, Lambertian, Metal},
     rtweekend::ray::Point,
 };
 use console::style;
@@ -12,7 +12,7 @@ pub mod material;
 pub mod rtweekend;
 
 fn main() {
-    let path = std::path::Path::new("output/book1/image14.png");
+    let path = std::path::Path::new("output/book1/image16.png");
     let prefix = path.parent().unwrap();
     std::fs::create_dir_all(prefix).expect("Cannot create all the parents");
 
@@ -20,7 +20,7 @@ fn main() {
 
     let material_ground = Lambertian::new(Point(0.8, 0.8, 0.0));
     let material_center = Lambertian::new(Point(0.1, 0.2, 0.5));
-    let material_left = Metal::new(Point(0.8, 0.8, 0.8), 0.3);
+    let material_left = Dielectric::new(1.5);
     let material_right = Metal::new(Point(0.8, 0.6, 0.2), 1.0);
 
     world.add(Box::new(hittable::Sphere::new(

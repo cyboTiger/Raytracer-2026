@@ -151,3 +151,15 @@ pub fn random_on_hemisphere(normal: &Point) -> Point {
 pub fn reflect(v: &Point, n: &Point) -> Point {
     *v - *n * dot(*v, *n) * 2.0
 }
+
+pub fn refract(uv: &Point, n: &Point, etai_over_etat: f64) -> Point {
+    let cos_theta = if dot(-*uv, *n) < 1.0 {
+        dot(-*uv, *n)
+    } else {
+        1.0
+    };
+    let r_out_perp = (*uv + (*n) * cos_theta) * etai_over_etat;
+    let r_out_parallel = -(*n) * (1.0 - r_out_perp.norm_squared()).abs().sqrt();
+
+    r_out_perp + r_out_parallel
+}
