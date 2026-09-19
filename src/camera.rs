@@ -10,6 +10,7 @@ use crate::rtweekend::random_double;
 use crate::rtweekend::ray;
 use crate::rtweekend::ray::Point;
 use crate::rtweekend::ray::Ray;
+use crate::rtweekend::ray::cross;
 
 pub struct Camera {
     pub aspect_ratio: f64,
@@ -19,12 +20,20 @@ pub struct Camera {
     pub max_depth: i32, // Maximum number of ray bounces into scene
     pub vfov: f64,      // Vertical view angle (field of view)
 
+    pub lookfrom: Point, // Point camera is looking from
+    pub lookat: Point,   // Point camera is looking at
+    pub vup: Point,      // Camera-relative "up" direction
+
     image_height: u32,
     center: Point,
     pixel00_loc: Point,
     pixel_delta_u: Point,
     pixel_delta_v: Point,
     pixel_samples_scale: f64,
+
+    u: Point,
+    v: Point,
+    w: Point,
 }
 
 impl Camera {
@@ -42,6 +51,12 @@ impl Camera {
             max_depth: 10,
             img: None,
             vfov: 90.0,
+            lookfrom: Point(0.0, 0.0, 0.0),
+            lookat: Point(0.0, 0.0, -1.0),
+            vup: Point(0.0, 1.0, 0.0),
+            u: Point::new(),
+            v: Point::new(),
+            w: Point::new(),
         }
     }
 
@@ -82,18 +97,23 @@ impl Camera {
             self.image_height
         };
         self.img = Some(ImageBuffer::new(self.image_width, self.image_height));
-        self.center = Point(0.0, 0.0, 0.0);
+        self.center = self.lookfrom;
 
         // Determine viewport dimensions.
-        let focal_length = 1.0;
+        let focal_length = (self.lookfrom - self.lookat).norm();
         let theta = degrees_to_radians(self.vfov);
         let h = (theta / 2.0).tan();
         let viewport_height = 2.0 * h * focal_length;
         let viewport_width = viewport_height * (self.image_width as f64 / self.image_height as f64);
 
+        // Calculate the u,v,w unit basis vectors for the camera coordinate frame.
+        self.w = (self.lookfrom - self.lookat).unit_vector();
+        self.u = (cross(self.vup, self.w)).unit_vector();
+        self.v = cross(self.w, self.u);
+
         // Calculate the vectors across the horizontal and down the vertical viewport edges.
-        let viewport_u = Point(viewport_width, 0.0, 0.0);
-        let viewport_v = Point(0.0, -viewport_height, 0.0);
+        let viewport_u = self.u * viewport_width;
+        let viewport_v = -self.v * viewport_height;
 
         // Calculate the horizontal and vertical delta vectors from pixel to pixel.
         self.pixel_delta_u = viewport_u / self.image_width as f64;
@@ -101,7 +121,7 @@ impl Camera {
 
         // Calculate the location of the upper left pixel.
         let viewport_upper_left =
-            self.center - Point(0.0, 0.0, focal_length) - viewport_u / 2.0 - viewport_v / 2.0;
+            self.center - (self.w * focal_length) - viewport_u / 2.0 - viewport_v / 2.0;
         self.pixel00_loc = viewport_upper_left + (self.pixel_delta_u + self.pixel_delta_v) * 0.5;
 
         // pixel sample scale

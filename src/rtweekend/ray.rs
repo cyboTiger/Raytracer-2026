@@ -86,6 +86,14 @@ pub fn dot(a: Point, b: Point) -> f64 {
     a.0 * b.0 + a.1 * b.1 + a.2 * b.2
 }
 
+pub fn cross(a: Point, b: Point) -> Point {
+    Point(
+        a.1 * b.2 - b.1 * a.2,
+        a.2 * b.0 - b.2 * a.0,
+        a.0 * b.1 - b.0 * a.1,
+    )
+}
+
 pub struct Ray {
     #[allow(dead_code)]
     pub orig: Point,
